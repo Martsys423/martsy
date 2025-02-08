@@ -1,34 +1,50 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import toast from 'react-hot-toast'
 
 export function useApiKeys() {
   const [apiKeys, setApiKeys] = useState([])
   const [isLoading, setIsLoading] = useState(false)
+  const fetchInProgress = useRef(false)
 
   const fetchKeys = useCallback(async () => {
-    if (isLoading) return
+    if (fetchInProgress.current) return
     
     try {
+      fetchInProgress.current = true
       setIsLoading(true)
+      
+      // Add delay to prevent rapid re-fetches
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
       const { data, error } = await supabase
         .from('api_keys')
         .select('*')
         .order('created_at', { ascending: false })
 
-      if (error) throw error
+      if (error) {
+        console.error('Supabase error:', error)
+        throw error
+      }
+
       setApiKeys(data || [])
     } catch (error) {
       console.error('Error fetching keys:', error)
-      toast.error('Failed to load API keys')
+      // Only show error toast once
+      if (!apiKeys.length) {
+        toast.error('Failed to load API keys')
+      }
     } finally {
       setIsLoading(false)
+      fetchInProgress.current = false
     }
-  }, [isLoading])
+  }, [apiKeys.length]) // Only depend on apiKeys.length to prevent unnecessary re-renders
 
   const createKey = async (newKeyName, monthlyLimit, limitEnabled) => {
-    setIsLoading(true)
+    if (fetchInProgress.current) return false
+    
     try {
+      setIsLoading(true)
       const newKey = {
         name: newKeyName,
         key: `martsy-${Math.random().toString(36).substr(2, 24)}`,
