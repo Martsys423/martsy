@@ -65,8 +65,8 @@ export default function Sidebar() {
           </Link>
 
           <Link 
-            href="/api-playground" 
-            className={`flex items-center space-x-3 px-4 py-2 text-gray-700 rounded-lg hover:bg-gray-100 ${isActive('/api-playground')}`}
+            href="/playground" 
+            className={`flex items-center space-x-3 px-4 py-2 text-gray-700 rounded-lg hover:bg-gray-100 ${isActive('/playground')}`}
           >
             <VscCode className="w-5 h-5" />
             <span>API Playground</span>
