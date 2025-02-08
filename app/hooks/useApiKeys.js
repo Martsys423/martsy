@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import toast from 'react-hot-toast'
 
@@ -6,7 +6,7 @@ export function useApiKeys() {
   const [apiKeys, setApiKeys] = useState([])
   const [isLoading, setIsLoading] = useState(true)
 
-  const fetchKeys = async () => {
+  const fetchKeys = useCallback(async () => {
     try {
       setIsLoading(true)
       const { data, error } = await supabase
@@ -15,21 +15,14 @@ export function useApiKeys() {
         .order('created_at', { ascending: false })
 
       if (error) throw error
-
-      setApiKeys(data.map(key => ({
-        id: key.id,
-        name: key.name,
-        key: key.key,
-        usage: key.usage || '0%',
-        created: new Date(key.created_at).toISOString().split('T')[0]
-      })))
+      setApiKeys(data || [])
     } catch (error) {
-      console.error('Failed to fetch API keys:', error)
-      toast.error('Failed to fetch API keys: ' + error.message)
+      toast.error('Failed to load API keys')
+      console.error('Error fetching keys:', error)
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [])
 
   const createKey = async (newKeyName, monthlyLimit, limitEnabled) => {
     setIsLoading(true)

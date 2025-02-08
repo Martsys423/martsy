@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { FiEye, FiCopy, FiEdit2, FiTrash2, FiPlus } from 'react-icons/fi'
 import { supabase } from '@/lib/supabase'
 import toast, { Toaster } from 'react-hot-toast'
@@ -13,6 +13,28 @@ export default function DashboardPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const { apiKeys, isLoading, fetchKeys, createKey, deleteKey, updateKeyName } = useApiKeys()
+
+  // Memoize fetchKeys to prevent infinite loops
+  const fetchKeys = useCallback(async () => {
+    try {
+      setIsLoading(true)
+      const { data, error } = await supabase
+        .from('api_keys')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (error) {
+        toast.error('Failed to load API keys')
+        return
+      }
+
+      setApiKeys(data || [])
+    } catch (error) {
+      toast.error('Error loading API keys')
+    } finally {
+      setIsLoading(false)
+    }
+  }, []) // Empty dependency array since it doesn't depend on any props or state
 
   useEffect(() => {
     fetchKeys()
@@ -32,6 +54,15 @@ export default function DashboardPage() {
     if (newName && newName !== currentName) {
       return await updateKeyName(id, newName)
     }
+  }
+
+  // Add loading state handling in your JSX
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-gray-600">Loading API keys...</div>
+      </div>
+    )
   }
 
   return (
