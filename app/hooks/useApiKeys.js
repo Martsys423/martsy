@@ -11,6 +11,10 @@ export function useApiKeys() {
     if (fetchInProgress.current) return
     
     try {
+      // Add debug logging
+      console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
+      console.log('Supabase client initialized:', !!supabase)
+      
       fetchInProgress.current = true
       setIsLoading(true)
       
@@ -27,6 +31,7 @@ export function useApiKeys() {
         throw error
       }
 
+      console.log('Fetched data:', data) // Debug log
       setApiKeys(data || [])
     } catch (error) {
       console.error('Error fetching keys:', error)

@@ -14,7 +14,10 @@ export default function DashboardPage() {
   const { apiKeys, isLoading, fetchKeys, createKey, deleteKey, updateKeyName } = useApiKeys()
 
   useEffect(() => {
-    fetchKeys()
+    const initialFetch = async () => {
+      await fetchKeys()
+    }
+    initialFetch()
   }, [])
 
   const handleCreateKey = async (name, limit, limitEnabled) => {
@@ -33,8 +36,7 @@ export default function DashboardPage() {
     }
   }
 
-  // Add loading state handling in your JSX
-  if (isLoading) {
+  if (isLoading && !apiKeys.length) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-gray-600">Loading API keys...</div>
