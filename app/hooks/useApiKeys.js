@@ -4,9 +4,11 @@ import toast from 'react-hot-toast'
 
 export function useApiKeys() {
   const [apiKeys, setApiKeys] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
 
   const fetchKeys = useCallback(async () => {
+    if (isLoading) return
+    
     try {
       setIsLoading(true)
       const { data, error } = await supabase
@@ -17,12 +19,12 @@ export function useApiKeys() {
       if (error) throw error
       setApiKeys(data || [])
     } catch (error) {
-      toast.error('Failed to load API keys')
       console.error('Error fetching keys:', error)
+      toast.error('Failed to load API keys')
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }, [isLoading])
 
   const createKey = async (newKeyName, monthlyLimit, limitEnabled) => {
     setIsLoading(true)

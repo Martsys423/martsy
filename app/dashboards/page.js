@@ -15,7 +15,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchKeys()
-  }, [fetchKeys])
+  }, [])
 
   const handleCreateKey = async (name, limit, limitEnabled) => {
     return await createKey(name, limit, limitEnabled)
