@@ -16,7 +16,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchKeys()
-  }, [])
+  }, [fetchKeys])
 
   const handleCreateKey = async (name, limit, limitEnabled) => {
     return await createKey(name, limit, limitEnabled)
@@ -122,7 +122,7 @@ export default function DashboardPage() {
             {/* Contact Section */}
             <div className="mt-8 text-center">
               <p className="text-gray-600 mb-4">
-                Have any questions, feedback or need support? We'd love to hear from you!
+                Have any questions, feedback or need support? We&apos;d love to hear from you!
               </p>
               <button className="bg-purple-500 text-white px-6 py-2 rounded-lg hover:bg-purple-600 transition-colors">
                 Contact us

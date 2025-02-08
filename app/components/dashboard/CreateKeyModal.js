@@ -70,7 +70,7 @@ export default function CreateKeyModal({ onClose, onSubmit }) {
           </div>
 
           <p className="text-gray-400 text-sm mb-8">
-            * If the combined usage of all your keys exceeds your plan's limit, all requests will be rejected.
+            * If the combined usage of all your keys exceeds your plan&apos;s limit, all requests will be rejected.
           </p>
 
           <div className="flex justify-center gap-4">
