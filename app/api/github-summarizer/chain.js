@@ -1,7 +1,6 @@
 import { ChatOpenAI } from "@langchain/openai"
 import { PromptTemplate } from "@langchain/core/prompts"
 import { RunnableSequence } from "@langchain/core/runnables"
-import { StructuredOutputParser } from "@langchain/core/output_parsers"
 import { z } from "zod"
 
 // Define the schema using Zod
@@ -26,12 +25,7 @@ Provide a structured analysis following these guidelines:
 4. Target audience should specify who would benefit most
 5. Setup complexity should reflect installation/usage difficulty
 
-{format_instructions}
-
 Remember to be objective and base your analysis solely on the README content.`
-
-const parser = StructuredOutputParser.fromZodSchema(responseSchema)
-const prompt = PromptTemplate.fromTemplate(TEMPLATE)
 
 // Create the chain
 export const createAnalysisChain = () => {
@@ -39,15 +33,15 @@ export const createAnalysisChain = () => {
     modelName: "gpt-3.5-turbo",
     temperature: 0,
     openAIApiKey: process.env.NEXT_OPENAI_API_KEY
-  })
+  }).withStructuredOutput(responseSchema)
+
+  const prompt = PromptTemplate.fromTemplate(TEMPLATE)
 
   return RunnableSequence.from([
     {
-      readme: (input) => input.readme,
-      format_instructions: () => parser.getFormatInstructions(),
+      readme: (input) => input.readme
     },
     prompt,
-    model,
-    parser,
+    model
   ])
 } 
