@@ -1,15 +1,26 @@
 import Image from 'next/image'
+import { getServerSession } from "next-auth"
+import LoginButton from './components/LoginButton'
+import SignInButton from './components/SignInButton'
+import { redirect } from 'next/navigation'
 
-export default function Home() {
+export default async function Home() {
+  const session = await getServerSession()
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="w-full max-w-5xl mb-8">
-        <a
-          href="/dashboards"
-          className="inline-block px-6 py-3 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors font-semibold shadow-md"
-        >
-          Manage API Keys →
-        </a>
+      <div className="w-full max-w-5xl mb-8 flex justify-between items-center">
+        {session ? (
+          <a
+            href="/dashboards"
+            className="inline-block px-6 py-3 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors font-semibold shadow-md"
+          >
+            Manage API Keys →
+          </a>
+        ) : (
+          <SignInButton />
+        )}
+        <LoginButton />
       </div>
 
       <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">

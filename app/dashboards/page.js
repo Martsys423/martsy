@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { FiEye, FiCopy, FiEdit2, FiTrash2, FiPlus } from 'react-icons/fi'
 import toast, { Toaster } from 'react-hot-toast'
 import Sidebar from '../components/Sidebar'
@@ -11,14 +11,20 @@ import { useApiKeys } from '../hooks/useApiKeys'
 export default function DashboardPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
   const [showCreateModal, setShowCreateModal] = useState(false)
-  const { apiKeys, isLoading, fetchKeys, createKey, deleteKey, updateKeyName } = useApiKeys()
+  const { apiKeys, loading, createKey, deleteKey, updateKeyName } = useApiKeys()
+  const [newKeyName, setNewKeyName] = useState('')
+  const [monthlyLimit, setMonthlyLimit] = useState('1000')
+  const [limitEnabled, setLimitEnabled] = useState(true)
 
-  useEffect(() => {
-    fetchKeys()
-  }, [])
+  const handleCreateKey = async (e) => {
+    e.preventDefault()
+    if (!newKeyName) return
 
-  const handleCreateKey = async (name, limit, limitEnabled) => {
-    return await createKey(name, limit, limitEnabled)
+    const success = await createKey(newKeyName, monthlyLimit, limitEnabled)
+    if (success) {
+      setNewKeyName('')
+      setMonthlyLimit('1000')
+    }
   }
 
   const handleDeleteKey = async (id) => {
@@ -33,8 +39,7 @@ export default function DashboardPage() {
     }
   }
 
-  // Add loading state handling in your JSX
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-gray-600">Loading API keys...</div>
@@ -114,7 +119,7 @@ export default function DashboardPage() {
 
               <ApiKeysTable 
                 apiKeys={apiKeys}
-                isLoading={isLoading}
+                isLoading={loading}
                 onDelete={handleDeleteKey}
                 onEditName={handleEditName}
               />
