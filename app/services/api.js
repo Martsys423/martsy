@@ -1,9 +1,35 @@
+import { handleAPIError } from '@/app/utils/error-handler'
+import { dbService } from './supabase'
+
 export const apiService = {
   async summarizeGithub(url) {
-    // Move logic from github-summarizer/route.js here
+    try {
+      const response = await fetch('/api/github-summarizer', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ url }),
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+      return data
+    } catch (error) {
+      handleAPIError(error)
+      throw error
+    }
   },
   
   async getUser(email) {
-    // Centralize Supabase user queries
+    try {
+      return await dbService.getUser(email)
+    } catch (error) {
+      handleAPIError(error)
+      throw error
+    }
   }
 } 
