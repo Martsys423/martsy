@@ -1,5 +1,6 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
+import { supabase } from '@/app/utils/supabase'
 
 const handler = NextAuth({
   providers: [
@@ -23,11 +24,38 @@ const handler = NextAuth({
     strategy: "jwt",
   },
   callbacks: {
-    async signIn({ account, profile }) {
-      if (account.provider === "google") {
-        return profile.email_verified;
+    async signIn({ user, account }) {
+      if (user && account) {
+        try {
+          // Check if user already exists in Supabase
+          const { data: existingUser } = await supabase
+            .from('users')
+            .select()
+            .eq('email', user.email)
+            .single()
+
+          if (!existingUser) {
+            // If user doesn't exist, insert them into Supabase
+            const { error } = await supabase
+              .from('users')
+              .insert([
+                {
+                  email: user.email,
+                  name: user.name,
+                  image: user.image,
+                  auth_provider: account.provider,
+                  last_sign_in: new Date().toISOString(),
+                }
+              ])
+
+            if (error) throw error
+          }
+        } catch (error) {
+          console.error('Error saving user to Supabase:', error)
+          // Still allow sign in even if Supabase save fails
+        }
       }
-      return true;
+      return true
     },
     async session({ session, token }) {
       session.user.id = token.sub;
