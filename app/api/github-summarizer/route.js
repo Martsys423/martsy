@@ -1,65 +1,31 @@
 import { NextResponse } from 'next/server'
-import { createAnalysisChain } from './chain'
-import { getGitHubReadme, validateGitHubUrl } from './github'
-import { validateApiKey } from './validation'
+import { githubService } from '@/app/services/github'
+import { handleAPIError } from '@/app/utils/error-handler'
+import { HTTP_STATUS } from '@/app/constants'
 
 export async function POST(request) {
   console.log('\n=== GitHub Summarizer API route called ===')
 
   try {
-    // Get and validate API key
+    // Get request data
     const apiKey = request.headers.get('x-api-key')
-    console.log('Received API key:', apiKey ? '✓ Present' : '✗ Missing')
+    const { githubUrl } = await request.json()
     
-    const apiKeyValidation = await validateApiKey(apiKey)
-    if (!apiKeyValidation.isValid) {
-      console.log('❌ API Key validation failed:', apiKeyValidation.message)
-      return NextResponse.json({
-        success: false,
-        message: apiKeyValidation.message,
-        error: apiKeyValidation.error
-      }, { status: apiKeyValidation.status })
-    }
-
-    // Get and validate GitHub URL
-    const body = await request.json()
-    const { githubUrl } = body
+    console.log('Received API key:', apiKey ? '✓ Present' : '✗ Missing')
     console.log('Received GitHub URL:', githubUrl)
 
-    const urlValidation = validateGitHubUrl(githubUrl)
-    if (!urlValidation.isValid) {
-      console.log('❌ URL validation failed:', urlValidation.message)
-      return NextResponse.json({
-        success: false,
-        message: urlValidation.message
-      }, { status: 400 })
-    }
-
-    // Fetch README content
-    console.log('\n📚 Starting README fetch...')
-    const readmeResult = await getGitHubReadme(githubUrl)
-    
-    if (!readmeResult.success) {
-      console.log('❌ Error fetching README:', readmeResult.error)
-      return NextResponse.json({
-        success: false,
-        message: "Failed to fetch README",
-        error: readmeResult.error
-      }, { status: 500 })
-    }
-
-    // Print README preview
-    console.log('\n📄 README Preview (first 500 chars):')
-    console.log('----------------------------------------')
-    console.log(readmeResult.content.substring(0, 500))
-    console.log('----------------------------------------')
+    // Validate request
+    await githubService.validateRequest(apiKey, githubUrl)
 
     // Analyze repository
     console.log('\n🤖 Starting repository analysis...')
-    const chain = createAnalysisChain()
-    const analysis = await chain.invoke({
-      readme: readmeResult.content
-    })
+    const { content, analysis } = await githubService.analyzeRepository(githubUrl)
+
+    // Log success
+    console.log('\n📄 README Preview (first 500 chars):')
+    console.log('----------------------------------------')
+    console.log(content.substring(0, 500))
+    console.log('----------------------------------------')
     console.log('✨ Analysis complete!')
 
     return NextResponse.json({
@@ -69,11 +35,15 @@ export async function POST(request) {
     })
 
   } catch (error) {
-    console.log('❌ General error:', error.message)
+    console.log('❌ Error:', error.message)
+    const errorResponse = handleAPIError(error)
+    
     return NextResponse.json({
       success: false,
-      message: "Error processing request",
+      message: errorResponse.message,
       error: error.message
-    }, { status: 400 })
+    }, { 
+      status: error.statusCode || HTTP_STATUS.SERVER_ERROR 
+    })
   }
 } 
