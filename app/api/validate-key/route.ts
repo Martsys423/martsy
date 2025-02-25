@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createServerSupabase } from '@/lib/supabase/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../auth/config'
 
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session) {
+    if (!session?.user?.id) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
     }
 
@@ -15,7 +15,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: 'API key is required' }, { status: 400 })
     }
 
-    const supabase = createClient()
+    const supabase = createServerSupabase()
     
     const { data, error } = await supabase
       .from('api_keys')

@@ -1,55 +1,19 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { supabase } from '@/app/utils/supabase'
-import toast from 'react-hot-toast'
 import { ApiKey } from '@/components/dashboard/ApiKeysTable'
-
-interface ApiKeyFromDB {
-  id: string
-  name: string
-  key: string
-  usage?: string
-  created_at: string
-  last_used?: string
-  user_id?: string
-  monthly_limit?: number
-}
-
-interface TransformedApiKey {
-  id: string
-  name: string
-  key: string
-  usage?: string
-  createdAt: string
-  lastUsed?: string
-  user_id?: string
-  monthly_limit?: number
-}
+import toast from 'react-hot-toast'
 
 export function useApiKeys() {
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([])
   const [loading, setLoading] = useState(true)
-
-  const transformApiKey = (key: ApiKeyFromDB): ApiKey => ({
-    id: key.id,
-    name: key.name,
-    key: key.key,
-    created_at: key.created_at,
-    user_id: key.user_id,
-    monthly_limit: key.monthly_limit
-  })
-
-  useEffect(() => {
-    fetchKeys()
-  }, [])
 
   const fetchKeys = async () => {
     try {
       const response = await fetch('/api/keys')
       if (!response.ok) throw new Error('Failed to fetch API keys')
       const data = await response.json()
-      setApiKeys(data.map(transformApiKey))
+      setApiKeys(data)
     } catch (error) {
       console.error('Error fetching API keys:', error)
       toast.error('Failed to load API keys')
@@ -58,21 +22,24 @@ export function useApiKeys() {
     }
   }
 
+  useEffect(() => {
+    fetchKeys()
+  }, [])
+
   const createKey = async (name: string, limit: string, limitEnabled: boolean) => {
     try {
-      console.log('Creating key:', { name, limit, limitEnabled })
-      const { data, error } = await supabase
-        .from('api_keys')
-        .insert([
-          {
-            name,
-            monthly_limit: limitEnabled ? parseInt(limit) : null,
-            key: `martsy-${generateRandomKey()}`,
-          },
-        ])
-        .select()
+      const response = await fetch('/api/keys/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name,
+          monthly_limit: limitEnabled ? parseInt(limit) : null,
+        }),
+      })
 
-      if (error) throw error
+      if (!response.ok) throw new Error('Failed to create API key')
       
       await fetchKeys()
       toast.success('API key created successfully')
@@ -84,36 +51,39 @@ export function useApiKeys() {
     }
   }
 
-  const generateRandomKey = () => {
-    return Math.random().toString(36).substring(2) + 
-           Math.random().toString(36).substring(2)
-  }
-
   const deleteKey = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('api_keys')
-        .delete()
-        .eq('id', id)
+      const response = await fetch(`/api/keys/${id}`, {
+        method: 'DELETE',
+      })
 
-      if (error) throw error
+      if (!response.ok) throw new Error('Failed to delete API key')
+      
       await fetchKeys()
+      toast.success('API key deleted successfully')
     } catch (error) {
       console.error('Error deleting API key:', error)
+      toast.error('Failed to delete API key')
     }
   }
 
   const updateKeyName = async (id: string, name: string) => {
     try {
-      const { error } = await supabase
-        .from('api_keys')
-        .update({ name })
-        .eq('id', id)
+      const response = await fetch(`/api/keys/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name }),
+      })
 
-      if (error) throw error
+      if (!response.ok) throw new Error('Failed to update API key')
+      
       await fetchKeys()
+      toast.success('API key name updated successfully')
     } catch (error) {
       console.error('Error updating API key name:', error)
+      toast.error('Failed to update API key name')
     }
   }
 
