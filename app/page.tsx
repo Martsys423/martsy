@@ -19,18 +19,28 @@ export default function Home() {
               <div>Loading...</div>
             ) : session ? (
               <>
-                <Button asChild variant="default">
+                <Button 
+                  asChild 
+                  className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+                >
                   <Link href="/dashboard">Dashboard</Link>
                 </Button>
                 <div className="flex items-center gap-4">
                   <span>Welcome, {session.user?.name}</span>
-                  <Button variant="outline" onClick={() => signOut()}>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => signOut()}
+                    className="hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors duration-200"
+                  >
                     Sign Out
                   </Button>
                 </div>
               </>
             ) : (
-              <Button asChild>
+              <Button 
+                asChild
+                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+              >
                 <Link href="/auth/signin">Sign Up / Login</Link>
               </Button>
             )}
@@ -43,7 +53,11 @@ export default function Home() {
           <div className="container mx-auto px-4 text-center">
             <h2 className="text-4xl font-bold mb-4">Unlock GitHub Insights with Martsy</h2>
             <p className="text-xl mb-8">Get summaries, stats, and cool facts about open source repositories</p>
-            <Button size="lg" asChild>
+            <Button 
+              size="lg" 
+              asChild
+              className="bg-white text-purple-600 hover:bg-opacity-90 hover:scale-105 transform transition-all duration-200 shadow-lg hover:shadow-xl"
+            >
               <Link href="/auth/signin">Start Analyzing for Free</Link>
             </Button>
           </div>
@@ -116,7 +130,15 @@ export default function Home() {
                     </ul>
                   </CardContent>
                   <CardFooter>
-                    <Button className="w-full">{plan.cta}</Button>
+                    <Button 
+                      className={`w-full transition-all duration-200 shadow-md hover:shadow-xl ${
+                        index === 1 
+                          ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700' 
+                          : 'bg-gradient-to-r from-gray-700 to-gray-900 hover:from-gray-800 hover:to-black'
+                      }`}
+                    >
+                      {plan.cta}
+                    </Button>
                   </CardFooter>
                 </Card>
               ))}
