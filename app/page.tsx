@@ -12,25 +12,25 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen">
       <header className="border-b">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+        <div className="container mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
           <h1 className="text-2xl font-bold">Martsy Github Analyzer</h1>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-center gap-4">
             {status === 'loading' ? (
               <div>Loading...</div>
             ) : session ? (
               <>
                 <Button 
                   asChild 
-                  className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+                  className="w-full sm:w-auto bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl"
                 >
                   <Link href="/dashboard">Dashboard</Link>
                 </Button>
-                <div className="flex items-center gap-4">
-                  <span>Welcome, {session.user?.name}</span>
+                <div className="flex flex-col sm:flex-row items-center gap-4">
+                  <span className="text-sm sm:text-base">Welcome, {session.user?.name}</span>
                   <Button 
                     variant="outline" 
                     onClick={() => signOut()}
-                    className="hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors duration-200"
+                    className="w-full sm:w-auto hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors duration-200"
                   >
                     Sign Out
                   </Button>
@@ -39,7 +39,7 @@ export default function Home() {
             ) : (
               <Button 
                 asChild
-                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+                className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 transition-all duration-200 shadow-lg hover:shadow-xl"
               >
                 <Link href="/auth/signin">Sign Up / Login</Link>
               </Button>
@@ -67,7 +67,7 @@ export default function Home() {
         <section className="py-20">
           <div className="container mx-auto px-4">
             <h2 className="text-3xl font-bold text-center mb-12">Key Features</h2>
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-4">
               {[
                 { title: "Repository Summaries", description: "Get concise overviews of any GitHub repo" },
                 { title: "Star Analytics", description: "Track star growth and patterns" },
@@ -93,7 +93,7 @@ export default function Home() {
         <section className="bg-gray-100 py-20">
           <div className="container mx-auto px-4">
             <h2 className="text-3xl font-bold text-center mb-12">Simple Pricing</h2>
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 px-4">
               {[
                 {
                   title: "Free",
