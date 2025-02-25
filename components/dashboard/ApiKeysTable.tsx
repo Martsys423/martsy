@@ -10,6 +10,8 @@ interface ApiKey {
   name: string
   key: string
   usage?: string
+  createdAt: string
+  lastUsed?: string
 }
 
 interface ApiKeysTableProps {
@@ -71,7 +73,9 @@ export default function ApiKeysTable({ apiKeys, isLoading, onDelete, onEditName 
                     : getHiddenKey(key.key)}
                 </div>
               </td>
-              <td className="p-4">{new Date(key.createdAt).toLocaleDateString()}</td>
+              <td className="p-4">
+                {key.createdAt ? new Date(key.createdAt).toLocaleDateString() : 'N/A'}
+              </td>
               <td className="p-4">
                 {key.lastUsed ? new Date(key.lastUsed).toLocaleDateString() : 'Never'}
               </td>

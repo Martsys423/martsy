@@ -4,17 +4,36 @@ import { useState, useEffect } from 'react'
 import { supabase } from '@/app/utils/supabase'
 import toast from 'react-hot-toast'
 
-interface ApiKey {
+interface ApiKeyFromDB {
   id: string
   name: string
   key: string
+  usage?: string
+  created_at: string
+  last_used?: string
+}
+
+interface TransformedApiKey {
+  id: string
+  name: string
+  key: string
+  usage?: string
   createdAt: string
   lastUsed?: string
 }
 
 export function useApiKeys() {
-  const [apiKeys, setApiKeys] = useState<ApiKey[]>([])
+  const [apiKeys, setApiKeys] = useState<TransformedApiKey[]>([])
   const [loading, setLoading] = useState(true)
+
+  const transformApiKey = (key: ApiKeyFromDB) => ({
+    id: key.id,
+    name: key.name,
+    key: key.key,
+    usage: key.usage,
+    createdAt: key.created_at,
+    lastUsed: key.last_used
+  })
 
   useEffect(() => {
     fetchApiKeys()
@@ -28,7 +47,7 @@ export function useApiKeys() {
         .order('created_at', { ascending: false })
 
       if (error) throw error
-      setApiKeys(data || [])
+      setApiKeys((data || []).map(transformApiKey))
     } catch (error) {
       console.error('Error fetching API keys:', error)
       toast.error('Failed to fetch API keys')
