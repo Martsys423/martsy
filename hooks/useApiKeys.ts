@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/app/utils/supabase'
 import toast from 'react-hot-toast'
+import { ApiKey } from '@/components/dashboard/ApiKeysTable'
 
 interface ApiKeyFromDB {
   id: string
@@ -11,6 +12,8 @@ interface ApiKeyFromDB {
   usage?: string
   created_at: string
   last_used?: string
+  user_id?: string
+  monthly_limit?: number
 }
 
 interface TransformedApiKey {
@@ -20,37 +23,36 @@ interface TransformedApiKey {
   usage?: string
   createdAt: string
   lastUsed?: string
+  user_id?: string
+  monthly_limit?: number
 }
 
 export function useApiKeys() {
-  const [apiKeys, setApiKeys] = useState<TransformedApiKey[]>([])
+  const [apiKeys, setApiKeys] = useState<ApiKey[]>([])
   const [loading, setLoading] = useState(true)
 
-  const transformApiKey = (key: ApiKeyFromDB) => ({
+  const transformApiKey = (key: ApiKeyFromDB): ApiKey => ({
     id: key.id,
     name: key.name,
     key: key.key,
-    usage: key.usage,
-    createdAt: key.created_at,
-    lastUsed: key.last_used
+    created_at: key.created_at,
+    user_id: key.user_id,
+    monthly_limit: key.monthly_limit
   })
 
   useEffect(() => {
-    fetchApiKeys()
+    fetchKeys()
   }, [])
 
-  const fetchApiKeys = async () => {
+  const fetchKeys = async () => {
     try {
-      const { data, error } = await supabase
-        .from('api_keys')
-        .select('*')
-        .order('created_at', { ascending: false })
-
-      if (error) throw error
-      setApiKeys((data || []).map(transformApiKey))
+      const response = await fetch('/api/keys')
+      if (!response.ok) throw new Error('Failed to fetch API keys')
+      const data = await response.json()
+      setApiKeys(data.map(transformApiKey))
     } catch (error) {
       console.error('Error fetching API keys:', error)
-      toast.error('Failed to fetch API keys')
+      toast.error('Failed to load API keys')
     } finally {
       setLoading(false)
     }
@@ -72,7 +74,7 @@ export function useApiKeys() {
 
       if (error) throw error
       
-      await fetchApiKeys()
+      await fetchKeys()
       toast.success('API key created successfully')
       return true
     } catch (error) {
@@ -95,7 +97,7 @@ export function useApiKeys() {
         .eq('id', id)
 
       if (error) throw error
-      await fetchApiKeys()
+      await fetchKeys()
     } catch (error) {
       console.error('Error deleting API key:', error)
     }
@@ -109,7 +111,7 @@ export function useApiKeys() {
         .eq('id', id)
 
       if (error) throw error
-      await fetchApiKeys()
+      await fetchKeys()
     } catch (error) {
       console.error('Error updating API key name:', error)
     }

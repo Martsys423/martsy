@@ -12,6 +12,7 @@ import ApiKeysTable from '@/components/dashboard/ApiKeysTable'
 import CreateKeyModal from '@/components/dashboard/CreateKeyModal'
 import { useApiKeys } from '@/hooks/useApiKeys'
 import { DashboardLayout } from "@/components/layout/DashboardLayout"
+import { ApiKey } from '@/components/dashboard/ApiKeysTable'
 
 export default function DashboardPage() {
   const router = useRouter()

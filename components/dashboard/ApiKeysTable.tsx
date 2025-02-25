@@ -6,11 +6,13 @@ import { CardContent } from "@/components/ui/card"
 import { FiCopy, FiEye, FiEyeOff, FiEdit2, FiTrash2 } from 'react-icons/fi'
 import { toast } from 'react-hot-toast'
 
-interface ApiKey {
+export interface ApiKey {
   id: string
   name: string
   key: string
-  created_at: string
+  created_at?: string
+  user_id?: string
+  monthly_limit?: number
 }
 
 interface ApiKeysTableProps {
