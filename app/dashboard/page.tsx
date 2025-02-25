@@ -29,10 +29,17 @@ export default function Dashboard() {
     return <div>Loading...</div>
   }
 
-  const handleCreateKey = async (name: string, limit: string, limitEnabled: boolean) => {
-    const success = await createKey(name, limit, limitEnabled)
-    if (success) {
-      setShowCreateModal(false)
+  const handleCreateKey = async (name: string, limit: string, limitEnabled: boolean): Promise<boolean> => {
+    try {
+      const success = await createKey(name, limit, limitEnabled)
+      if (success) {
+        setShowCreateModal(false)
+        return true
+      }
+      return false
+    } catch (error) {
+      console.error('Error creating key:', error)
+      return false
     }
   }
 

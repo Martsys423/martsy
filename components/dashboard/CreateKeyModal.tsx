@@ -8,7 +8,7 @@ import { Switch } from "@/components/ui/switch"
 
 interface CreateKeyModalProps {
   onClose: () => void
-  onSubmit: (name: string, limit: string, limitEnabled: boolean) => Promise<boolean>
+  onSubmit: (name: string, limit: string, limitEnabled: boolean) => Promise<void>
 }
 
 export default function CreateKeyModal({ onClose, onSubmit }: CreateKeyModalProps) {
