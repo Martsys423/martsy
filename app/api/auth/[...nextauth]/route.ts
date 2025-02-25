@@ -1,12 +1,12 @@
-import NextAuth from "next-auth";
-import Google from "next-auth/providers/google";
+import NextAuth from "next-auth"
+import Google from "next-auth/providers/google"
 import { supabase } from '@/app/utils/supabase'
 
 const handler = NextAuth({
   providers: [
     Google({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       authorization: {
         params: {
           prompt: "select_account",
@@ -58,10 +58,12 @@ const handler = NextAuth({
       return true
     },
     async session({ session, token }) {
-      session.user.id = token.sub;
+      if (session.user) {
+        session.user.id = token.sub;
+      }
       return session;
     }
   }
-});
+})
 
-export { handler as GET, handler as POST }; 
+export { handler as GET, handler as POST } 
