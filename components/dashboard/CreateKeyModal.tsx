@@ -8,7 +8,7 @@ import { Switch } from "@/components/ui/switch"
 
 interface CreateKeyModalProps {
   onClose: () => void
-  onSubmit: (name: string, limit: string, limitEnabled: boolean) => Promise<void>
+  onSubmit: (name: string, limit: string, limitEnabled: boolean) => Promise<boolean>
 }
 
 export default function CreateKeyModal({ onClose, onSubmit }: CreateKeyModalProps) {
@@ -23,8 +23,10 @@ export default function CreateKeyModal({ onClose, onSubmit }: CreateKeyModalProp
     
     try {
       setIsSubmitting(true)
-      await onSubmit(name, monthlyLimit, limitEnabled)
-      onClose()
+      const success = await onSubmit(name, monthlyLimit, limitEnabled)
+      if (success) {
+        onClose()
+      }
     } catch (error) {
       console.error('Error creating key:', error)
     } finally {
