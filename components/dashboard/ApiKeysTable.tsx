@@ -38,6 +38,15 @@ export default function ApiKeysTable({ apiKeys, isLoading, onDelete, onEditName 
     }
   }
 
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'N/A'
+    try {
+      return new Date(dateString).toLocaleDateString()
+    } catch (error) {
+      return 'Invalid Date'
+    }
+  }
+
   if (isLoading) {
     return (
       <CardContent className="p-6">
@@ -78,7 +87,7 @@ export default function ApiKeysTable({ apiKeys, isLoading, onDelete, onEditName 
                   </div>
                 </td>
                 <td className="p-4 text-sm">
-                  {new Date(apiKey.created_at).toLocaleDateString()}
+                  {formatDate(apiKey.created_at)}
                 </td>
                 <td className="p-4 text-sm">
                   <div className="flex justify-end gap-1">
