@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createServerSupabase } from '@/lib/supabase/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../auth/config'
 
@@ -10,7 +10,7 @@ export async function GET() {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
     }
 
-    const supabase = createClient()
+    const supabase = createServerSupabase()
     const { data, error } = await supabase
       .from('api_keys')
       .select('*')
@@ -18,17 +18,11 @@ export async function GET() {
       .order('created_at', { ascending: false })
 
     if (error) {
+      console.error('Supabase error:', error)
       throw error
     }
 
-    return NextResponse.json(data.map(key => ({
-      id: key.id,
-      name: key.name,
-      key: key.key,
-      created_at: key.created_at,
-      user_id: key.user_id,
-      monthly_limit: key.monthly_limit
-    })))
+    return NextResponse.json(data || [])
   } catch (error) {
     console.error('Error fetching API keys:', error)
     return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 })
