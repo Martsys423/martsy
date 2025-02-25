@@ -90,4 +90,15 @@
   onClick={() => router.push('/dashboard/playground')}
 >
   <FiCode className="h-4 w-4" /> Playground
-</Button> 
+</Button>
+
+# Progress Log
+
+## February 25, 2024
+- Implemented API key management system
+  - Created database tables for users and API keys
+  - Added ability to create API keys
+  - Added ability to delete API keys
+  - Added ability to update API keys
+  - Integrated with NextAuth for user authentication
+  - Set up Supabase service role for secure backend operations 

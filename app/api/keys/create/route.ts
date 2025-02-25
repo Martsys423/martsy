@@ -7,31 +7,70 @@ import { nanoid } from 'nanoid'
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
+    console.log('POST /api/keys/create - Session:', session)
+
+    if (!session?.user?.email) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
     }
 
     const { name, monthly_limit } = await request.json()
-    const apiKey = `martsy_${nanoid(32)}`
+    console.log('POST /api/keys/create - Request body:', { name, monthly_limit })
 
     const supabase = createServerSupabase()
-    const { error } = await supabase
+
+    // First get or create the user
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('email', session.user.email)
+      .single()
+
+    let userId = userData?.id
+
+    // If user doesn't exist, create them
+    if (!userData && !userError) {
+      const { data: newUser, error: createError } = await supabase
+        .from('users')
+        .insert({
+          email: session.user.email,
+          name: session.user.name,
+          image: session.user.image,
+        })
+        .select()
+        .single()
+
+      if (createError) throw createError
+      userId = newUser.id
+    }
+
+    if (!userId) {
+      throw new Error('Failed to get or create user')
+    }
+
+    // Create the API key
+    const apiKey = `martsy_${nanoid(32)}`
+    const { data, error } = await supabase
       .from('api_keys')
       .insert([
         {
           name,
           key: apiKey,
-          monthly_limit,
-          user_id: session.user.id,
-          created_at: new Date().toISOString(),
+          monthly_limit: monthly_limit || null,
+          user_id: userId,
         },
       ])
+      .select()
+      .single()
 
+    console.log('POST /api/keys/create - API key created:', data)
     if (error) throw error
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true, data })
   } catch (error) {
-    console.error('Error creating API key:', error)
-    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 })
+    console.error('POST /api/keys/create - Error:', error)
+    return NextResponse.json({ 
+      message: 'Failed to create API key',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 })
   }
 } 
