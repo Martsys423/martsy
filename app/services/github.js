@@ -82,35 +82,20 @@ export const githubService = {
 
     // Analyze repository
     const chain = createAnalysisChain()
-    const result = await chain.invoke({
+    const resultString = await chain.invoke({
       readme: readmeResult.content
     })
 
-    // Debug the result structure
-    console.log('Chain result:', JSON.stringify(result, null, 2))
-
-    // Handle different possible result structures
-    let summary, coolFacts, mainTechnologies, targetAudience, setupComplexity
-
-    if (result && result.analysis) {
-      // Expected structure from chain
-      summary = result.analysis.summary
-      coolFacts = result.analysis.coolFacts || []
-      mainTechnologies = result.analysis.mainTechnologies || []
-      targetAudience = result.analysis.targetAudience
-      setupComplexity = result.analysis.setupComplexity
-    } else if (typeof result === 'object') {
-      // Direct structure
-      summary = result.summary
-      coolFacts = result.coolFacts || []
-      mainTechnologies = result.mainTechnologies || []
-      targetAudience = result.targetAudience
-      setupComplexity = result.setupComplexity
-    } else {
-      // Fallback for unexpected structure
-      console.error('Unexpected result structure:', result)
+    // Parse the JSON string result
+    let parsedResult;
+    try {
+      parsedResult = JSON.parse(resultString);
+      console.log('Parsed chain result:', parsedResult);
+    } catch (error) {
+      console.error('Error parsing chain result:', error);
+      console.log('Raw result:', resultString);
       throw new APIError(
-        "Failed to analyze repository", 
+        "Failed to parse analysis result", 
         HTTP_STATUS.SERVER_ERROR
       )
     }
@@ -118,11 +103,11 @@ export const githubService = {
     // Return a consistent structure
     return {
       content: readmeResult.content,
-      summary,
-      coolFacts,
-      mainTechnologies,
-      targetAudience,
-      setupComplexity
+      summary: parsedResult.summary || "",
+      coolFacts: parsedResult.coolFacts || [],
+      mainTechnologies: parsedResult.mainTechnologies || [],
+      targetAudience: parsedResult.targetAudience || "",
+      setupComplexity: parsedResult.setupComplexity || "Moderate"
     }
   }
 } 

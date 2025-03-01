@@ -1,6 +1,6 @@
 import { ChatOpenAI } from "@langchain/openai";
 import { PromptTemplate } from "@langchain/core/prompts";
-import { StructuredOutputParser } from "langchain/output_parsers";
+import { StringOutputParser } from "@langchain/core/output_parsers";
 import { z } from "zod";
 
 export function createAnalysisChain() {
@@ -22,27 +22,16 @@ export function createAnalysisChain() {
 
     Respond in JSON format with the following structure:
     {
-      "analysis": {
-        "summary": "...",
-        "coolFacts": ["fact1", "fact2", "fact3"],
-        "mainTechnologies": ["tech1", "tech2", "tech3"],
-        "targetAudience": "...",
-        "setupComplexity": "Simple|Moderate|Complex"
-      }
+      "summary": "...",
+      "coolFacts": ["fact1", "fact2", "fact3"],
+      "mainTechnologies": ["tech1", "tech2", "tech3"],
+      "targetAudience": "...",
+      "setupComplexity": "Simple|Moderate|Complex"
     }
+
+    Make sure to return valid JSON that can be parsed.
   `);
 
-  return prompt.pipe(model).pipe(
-    StructuredOutputParser.fromZodSchema(
-      z.object({
-        analysis: z.object({
-          summary: z.string(),
-          coolFacts: z.array(z.string()),
-          mainTechnologies: z.array(z.string()),
-          targetAudience: z.string(),
-          setupComplexity: z.enum(["Simple", "Moderate", "Complex"])
-        })
-      })
-    )
-  );
+  // Use a simpler output parser to avoid the complex type issues
+  return prompt.pipe(model).pipe(new StringOutputParser());
 } 
