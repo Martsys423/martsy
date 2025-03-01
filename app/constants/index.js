@@ -10,15 +10,19 @@ export const API_ROUTES = {
 }
 
 export const ERROR_MESSAGES = {
-  UNAUTHORIZED: 'You must be logged in to access this resource',
-  INVALID_REQUEST: 'Invalid request parameters',
-  SERVER_ERROR: 'An unexpected error occurred'
+  INVALID_API_KEY: 'Invalid API key',
+  MISSING_GITHUB_URL: 'GitHub URL is required',
+  DATABASE_ERROR: 'Database error',
+  SERVER_ERROR: 'Server error',
+  VALIDATION_ERROR: 'Validation error'
 }
 
 export const HTTP_STATUS = {
   OK: 200,
+  CREATED: 201,
   BAD_REQUEST: 400,
   UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
   NOT_FOUND: 404,
   SERVER_ERROR: 500
 } 

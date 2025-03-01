@@ -86,18 +86,21 @@ export default function ProtectedPage() {
 
     setIsAnalyzing(true)
     try {
+      console.log('Analyzing repository with API key:', apiKey)
+      
       const response = await fetch('/api/github-summarizer', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          apiKey,
+          apiKey: apiKey,
           githubURL: githubUrl,
         }),
       })
 
       const data = await response.json()
+      console.log('Analysis response:', data)
       
       if (response.ok && data.success) {
         setAnalysisResult(data.data.analysis)
