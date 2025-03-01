@@ -1,6 +1,7 @@
 import { ChatOpenAI } from "@langchain/openai";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { StringOutputParser } from "@langchain/core/output_parsers";
+import { RunnableSequence } from "@langchain/core/runnables";
 
 export function createAnalysisChain() {
   // Check if OpenAI API key is set with the correct variable name
@@ -49,6 +50,10 @@ export function createAnalysisChain() {
     Do not include any text outside the JSON object. Do not use markdown formatting within the JSON values.
   `);
 
-  // Use a simpler output parser to avoid the complex type issues
-  return prompt.pipe(model).pipe(new StringOutputParser());
+  // Create a proper runnable sequence instead of using pipe
+  return RunnableSequence.from([
+    prompt,
+    model,
+    new StringOutputParser()
+  ]);
 } 
