@@ -8,6 +8,15 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import Link from 'next/link'
 
+// Define the type for the analysis result
+interface AnalysisResult {
+  summary: string;
+  coolFacts: string[];
+  mainTechnologies: string[];
+  targetAudience: string;
+  setupComplexity: string;
+}
+
 export default function ProtectedPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -16,7 +25,7 @@ export default function ProtectedPage() {
   const [isValid, setIsValid] = useState(false)
   const [githubUrl, setGithubUrl] = useState('')
   const [isAnalyzing, setIsAnalyzing] = useState(false)
-  const [analysisResult, setAnalysisResult] = useState(null)
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null)
 
   useEffect(() => {
     // Get API key from URL parameters
@@ -183,7 +192,7 @@ export default function ProtectedPage() {
                 <div>
                   <h4 className="font-medium">Cool Facts</h4>
                   <ul className="list-disc pl-5 mt-1">
-                    {analysisResult.coolFacts.map((fact: string, index: number) => (
+                    {analysisResult.coolFacts.map((fact, index) => (
                       <li key={index}>{fact}</li>
                     ))}
                   </ul>
@@ -192,7 +201,7 @@ export default function ProtectedPage() {
                 <div>
                   <h4 className="font-medium">Main Technologies</h4>
                   <div className="flex flex-wrap gap-2 mt-1">
-                    {analysisResult.mainTechnologies.map((tech: string, index: number) => (
+                    {analysisResult.mainTechnologies.map((tech, index) => (
                       <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 rounded-md text-sm">
                         {tech}
                       </span>
