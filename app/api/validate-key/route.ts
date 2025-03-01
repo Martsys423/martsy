@@ -3,38 +3,51 @@ import { createServerSupabase } from '@/lib/supabase/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../auth/config'
 
-export async function POST(request: Request) {
+export async function POST(req: Request) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
+    // Add CORS headers
+    const headers = {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
     }
 
-    const { apiKey } = await request.json()
-    if (!apiKey) {
-      return NextResponse.json({ message: 'API key is required' }, { status: 400 })
-    }
-
-    const supabase = createServerSupabase()
+    const body = await req.json()
+    const { apiKey } = body
     
+    console.log('Received API key:', apiKey)
+
+    if (!apiKey) {
+      return new Response(JSON.stringify({ message: "API key is required" }), {
+        status: 400
+      })
+    }
+
+    console.log('Querying Supabase for key:', apiKey)
+    const supabase = createServerSupabase()
     const { data, error } = await supabase
       .from('api_keys')
       .select('*')
       .eq('key', apiKey)
       .single()
+    
+    console.log('Supabase response:', { data, error })
 
     if (error || !data) {
-      return NextResponse.json({ message: 'Invalid API key' }, { status: 400 })
+      return new Response(JSON.stringify({ message: "Unauthorized" }), {
+        status: 401
+      })
     }
 
-    return NextResponse.json({ 
-      valid: true,
-      message: 'API key verified successfully'
+    return new Response(JSON.stringify({ message: "Valid API key" }), {
+      status: 200,
+      headers
     })
+
   } catch (error) {
-    console.error('Error validating API key:', error)
-    return NextResponse.json({ 
-      message: 'Internal Server Error' 
-    }, { status: 500 })
+    console.error('Validation error:', error)
+    return new Response(JSON.stringify({ message: "Internal server error" }), {
+      status: 500
+    })
   }
 } 
