@@ -23,7 +23,7 @@ export function createAnalysisChain() {
 
   console.log("Creating analysis chain with model:", model.modelName);
 
-  const prompt = PromptTemplate.fromTemplate(`
+  const promptTemplate = `
     You are an expert GitHub repository analyzer. Your task is to analyze the README of a repository and extract key information.
     
     Analyze the following GitHub repository README and provide:
@@ -48,12 +48,14 @@ export function createAnalysisChain() {
     
     Ensure your response is properly formatted JSON with no trailing commas, and all strings are properly quoted.
     Do not include any text outside the JSON object. Do not use markdown formatting within the JSON values.
-  `);
+  `;
 
-  // Create a proper runnable sequence instead of using pipe
-  return RunnableSequence.from([
-    prompt,
-    model,
-    new StringOutputParser()
-  ]);
+  // Create a simpler chain using the invoke method directly
+  return async (readme: string) => {
+    const prompt = PromptTemplate.fromTemplate(promptTemplate);
+    const formattedPrompt = await prompt.format({ readme });
+    const result = await model.invoke(formattedPrompt);
+    const parser = new StringOutputParser();
+    return parser.invoke(result);
+  };
 } 
