@@ -65,7 +65,19 @@ module.exports = {
   				'3': 'hsl(var(--chart-3))',
   				'4': 'hsl(var(--chart-4))',
   				'5': 'hsl(var(--chart-5))'
-  			}
+  			},
+  			purple: {
+  				400: '#B388FF', // Light purple
+  				500: '#9575CD', // Mid purple
+  			},
+  			pink: {
+  				500: '#EC407A', // Mid pink
+  				600: '#D81B60', // Darker pink
+  			},
+  			orange: {
+  				400: '#FF7043', // Light orange
+  				500: '#F4511E', // Darker orange
+  			},
   		}
   	}
   },

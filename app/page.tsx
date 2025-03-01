@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Check } from "lucide-react"
 import { useSession, signOut } from "next-auth/react"
+import { GRADIENTS } from "@/lib/constants"
 
 export default function Home() {
   const { data: session, status } = useSession()
@@ -49,19 +50,21 @@ export default function Home() {
       </header>
       <main className="flex-grow">
         {/* Hero Section */}
-        <section className="bg-gradient-to-r from-purple-500 to-pink-500 text-white py-20">
-          <div className="container mx-auto px-4 text-center">
-            <h2 className="text-4xl font-bold mb-4">Unlock GitHub Insights with Martsy</h2>
-            <p className="text-xl mb-8">Get summaries, stats, and cool facts about open source repositories</p>
+        <div className="py-24 bg-gradient-to-b from-purple-400 via-pink-500 to-blue-400">
+          <div className="container mx-auto px-4 py-16 text-center">
+            <h1 className="text-5xl font-bold text-white mb-6">
+              Unlock GitHub Insights with Martsy
+            </h1>
+            <p className="text-xl text-white/90 mb-10">
+              Get summaries, stats, and cool facts about open source repositories
+            </p>
             <Button 
-              size="lg" 
-              asChild
-              className="bg-white text-purple-600 hover:bg-opacity-90 hover:scale-105 transform transition-all duration-200 shadow-lg hover:shadow-xl"
+              className={`${GRADIENTS.button} text-white font-semibold px-8 py-3 rounded-full shadow-lg ${GRADIENTS.hover}`}
             >
-              <Link href="/auth/signin">Start Analyzing for Free</Link>
+              Start Analyzing for Free
             </Button>
           </div>
-        </section>
+        </div>
 
         {/* Features Section */}
         <section className="py-20">
