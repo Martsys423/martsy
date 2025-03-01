@@ -1,51 +1,55 @@
 import { createServerSupabase } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { githubService } from '@/app/services/github'
+import { APIError } from '@/app/utils/error-handler'
+
+async function fetchGitHubReadme(url: string) {
+  try {
+    // Extract owner and repo from GitHub URL
+    const urlParts = url.replace('https://github.com/', '').split('/')
+    const owner = urlParts[0]
+    const repo = urlParts[1]
+
+    // Fetch readme using GitHub API
+    const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/readme`, {
+      headers: {
+        'Accept': 'application/vnd.github.v3.raw',
+        // Add GitHub token if you have rate limiting issues
+        // 'Authorization': `token ${process.env.GITHUB_TOKEN}`,
+      }
+    })
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch readme: ${response.statusText}`)
+    }
+
+    const readme = await response.text()
+    return readme
+  } catch (error) {
+    console.error('Error fetching GitHub readme:', error)
+    return null
+  }
+}
 
 export async function POST(req: Request) {
   try {
     // Get API key from header
     const apiKey = req.headers.get('x-api-key')
+    console.log('Received API key:', apiKey)
     
     // Add CORS headers
     const headers = new Headers({
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, x-api-key',  // Added x-api-key
+      'Access-Control-Allow-Headers': 'Content-Type, x-api-key',
     })
 
-    // Validate API key
-    if (!apiKey) {
-      return new Response(JSON.stringify({ 
-        success: false,
-        message: "API key is required",
-        error: "Missing API key"
-      }), {
-        status: 401,
-        headers
-      })
-    }
-
-    // Verify API key in database
-    const supabase = createServerSupabase()
-    const { data, error } = await supabase
-      .from('api_keys')
-      .select('*')
-      .eq('key', apiKey)
-      .single()
-
-    if (error || !data) {
-      return new Response(JSON.stringify({ 
-        success: false,
-        message: "Invalid API key",
-        error: "Invalid API key"
-      }), {
-        status: 401,
-        headers
-      })
-    }
+    // Log all headers for debugging
+    console.log('Request headers:', Object.fromEntries(req.headers.entries()))
 
     // Get request body
     const body = await req.json()
+    console.log('Request body:', body)
     const { githubURL } = body
 
     if (!githubURL) {
@@ -59,22 +63,53 @@ export async function POST(req: Request) {
       })
     }
 
-    // TODO: Add your GitHub repository analysis logic here
-    // For now, return a mock response
+    // Use the GitHub service for validation and analysis
+    await githubService.validateRequest(apiKey, githubURL)
+    const result = await githubService.analyzeRepository(githubURL)
+
     return new Response(JSON.stringify({
       success: true,
       message: "Repository analyzed successfully",
       data: {
         url: githubURL,
-        // Add your analysis results here
+        analysis: {
+          summary: result.summary,
+          coolFacts: result.coolFacts || [],
+          mainTechnologies: result.mainTechnologies || [],
+          targetAudience: result.targetAudience,
+          setupComplexity: result.setupComplexity
+        }
       }
     }), {
       status: 200,
-      headers
+      headers: new Headers({
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, x-api-key',
+      })
     })
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error in GitHub summarizer:', error)
+    
+    // Type guard for APIError
+    if (error instanceof APIError) {
+      return new Response(JSON.stringify({
+        success: false,
+        message: error.message,
+        error: error.message
+      }), {
+        status: error.statusCode,
+        headers: new Headers({
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, x-api-key',
+        })
+      })
+    }
+
+    // Handle unknown errors
     return new Response(JSON.stringify({
       success: false,
       message: "Internal server error",

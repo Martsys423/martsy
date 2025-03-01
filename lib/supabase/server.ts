@@ -1,17 +1,25 @@
 import { createClient } from '@supabase/supabase-js'
 
-export const createServerSupabase = () => {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseKey = process.env.NEXT_SUPABASE_SERVICE_ROLE_KEY
+export function createServerSupabase() {
+  console.log('Creating Supabase client with:', {
+    url: process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 10) + '...',
+    serviceRoleKey: process.env.NEXT_SUPABASE_SERVICE_ROLE_KEY ? 'exists' : 'missing'
+  })
 
-  console.log('Environment Variables Debug:')
-  console.log('URL:', supabaseUrl ? 'exists' : 'missing')
-  console.log('Key:', supabaseKey ? 'exists' : 'missing')
-  console.log('Key value first 10 chars:', supabaseKey?.substring(0, 10))
-
-  if (!supabaseUrl || !supabaseKey) {
-    throw new Error(`Missing Supabase environment variables: ${!supabaseUrl ? 'URL' : ''} ${!supabaseKey ? 'Key' : ''}`)
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error('Missing Supabase environment variables')
   }
 
-  return createClient(supabaseUrl, supabaseKey)
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_SUPABASE_SERVICE_ROLE_KEY,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    }
+  )
+
+  return supabase
 } 
