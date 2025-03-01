@@ -1,18 +1,33 @@
 import { NextResponse } from 'next/server'
 import { githubService } from '@/app/services/github'
 import { createApiResponse, createErrorResponse } from '@/app/utils/api-response'
-import { handleApiError } from '@/app/utils/error-handler'
+import { APIError } from '@/app/utils/error-handler'
 import { z } from 'zod'
-import { validateRequest } from '@/app/middleware/validate-request'
 
+// Define the request schema
 const githubRequestSchema = z.object({
   apiKey: z.string().min(1, 'API key is required'),
   githubURL: z.string().url('Invalid GitHub URL')
 })
 
-async function handler(req: Request, data: z.infer<typeof githubRequestSchema>) {
+export async function POST(req: Request) {
   try {
-    const { apiKey, githubURL } = data
+    // Parse the request body
+    const body = await req.json()
+    
+    // Get API key from header if not in body
+    const apiKeyFromHeader = req.headers.get('x-api-key')
+    const apiKey = body.apiKey || apiKeyFromHeader
+    const githubURL = body.githubURL
+    
+    // Validate required fields
+    if (!apiKey) {
+      return createErrorResponse('API key is required', 400)
+    }
+    
+    if (!githubURL) {
+      return createErrorResponse('GitHub URL is required', 400)
+    }
     
     console.log('Received request for GitHub summarizer:', {
       apiKeyProvided: !!apiKey,
@@ -26,15 +41,26 @@ async function handler(req: Request, data: z.infer<typeof githubRequestSchema>) 
     // If validation successful, analyze the repository
     const analysis = await githubService.analyzeRepository(githubURL)
     
+    // Remove content field if it exists
+    if (analysis && 'content' in analysis) {
+      const { content, ...rest } = analysis as any
+      return createApiResponse({ analysis: rest }, true, 'Repository analyzed successfully')
+    }
+    
     return createApiResponse({ analysis }, true, 'Repository analyzed successfully')
   } catch (error) {
     console.error('Error in GitHub summarizer:', error)
-    const errorResponse = handleApiError(error)
-    return createErrorResponse(errorResponse.message, errorResponse.status)
+    
+    if (error instanceof APIError) {
+      return createErrorResponse(error.message, error.statusCode)
+    }
+    
+    return createErrorResponse(
+      error instanceof Error ? error.message : 'Failed to analyze repository',
+      500
+    )
   }
 }
-
-export const POST = validateRequest(githubRequestSchema, handler)
 
 // Handle OPTIONS request for CORS
 export async function OPTIONS() {

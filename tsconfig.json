@@ -114,6 +114,8 @@
     "**/*.tsx"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "app/api/debug-key",
+    "app/api/debug-keys"
   ]
 }

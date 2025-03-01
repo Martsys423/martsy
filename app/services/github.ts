@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js'
 import { ChatOpenAI } from "@langchain/openai"
 import { StructuredOutputParser } from "langchain/output_parsers"
 import { z } from "zod"
-import { PromptTemplate } from "langchain/prompts"
+import { PromptTemplate } from "@langchain/core/prompts"
 import { GithubAnalysis } from '@/app/types/api'
 
 // Move all GitHub-related functions here from app/api/github-summarizer/github.js
@@ -87,12 +87,15 @@ export async function getGitHubReadme(url: string) {
       }
     }
     
-    // If raw URLs don't work, try the GitHub API
-    const apiResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/readme`, {
-      headers: {
-        'Accept': 'application/vnd.github.v3.raw'
+    // If neither main nor master branches work, try the GitHub API
+    const apiResponse = await fetch(
+      `https://api.github.com/repos/${owner}/${repo}/readme`,
+      {
+        headers: {
+          'Accept': 'application/vnd.github.v3.raw'
+        }
       }
-    })
+    )
     
     if (apiResponse.ok) {
       const content = await apiResponse.text()
@@ -107,16 +110,15 @@ export async function getGitHubReadme(url: string) {
       }
     }
     
-    console.error('Failed to fetch README from all sources')
-    return { 
-      success: false, 
-      message: 'Failed to fetch README' 
+    return {
+      success: false,
+      message: 'Failed to fetch README from GitHub'
     }
   } catch (error) {
     console.error('Error fetching GitHub README:', error)
-    return { 
-      success: false, 
-      message: 'Failed to fetch README' 
+    return {
+      success: false,
+      message: 'Error fetching GitHub README'
     }
   }
 }
@@ -172,6 +174,15 @@ export const githubService = {
     if (!githubUrl) {
       throw new APIError(
         ERROR_MESSAGES.MISSING_GITHUB_URL,
+        HTTP_STATUS.BAD_REQUEST
+      )
+    }
+    
+    const urlValidation = await validateGitHubUrl(githubUrl)
+    
+    if (!urlValidation.isValid) {
+      throw new APIError(
+        urlValidation.message,
         HTTP_STATUS.BAD_REQUEST
       )
     }
@@ -250,6 +261,7 @@ export const githubService = {
       // Parse the structured output
       const parsedOutput = await parser.parse(response);
       
+      // Return only the parsed output without the README content
       return parsedOutput;
     } catch (error) {
       console.error('Error in repository analysis:', error);
