@@ -80,32 +80,58 @@ export const githubService = {
       )
     }
 
-    // Analyze repository
-    const chain = createAnalysisChain()
-    const resultString = await chain.invoke({
-      readme: readmeResult.content
-    })
-
-    console.log('Raw chain result:', resultString);
-    
-    // Clean the result string to ensure it's valid JSON
-    let cleanedResult = resultString;
-    
-    // Try to extract JSON if there's any text before or after
-    const jsonMatch = resultString.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      cleanedResult = jsonMatch[0];
-    }
-    
-    // Parse the JSON string result
-    let parsedResult;
     try {
-      parsedResult = JSON.parse(cleanedResult);
-      console.log('Parsed chain result:', parsedResult);
-    } catch (error) {
-      console.error('Error parsing chain result:', error);
+      // Analyze repository
+      const chain = createAnalysisChain()
+      const resultString = await chain.invoke({
+        readme: readmeResult.content
+      })
+
+      console.log('Raw chain result:', resultString);
       
-      // Fallback to a simple analysis if parsing fails
+      // Ensure resultString is actually a string
+      if (typeof resultString !== 'string') {
+        console.error('Chain result is not a string:', resultString);
+        throw new Error('Chain result is not a string');
+      }
+      
+      // Clean the result string to ensure it's valid JSON
+      let cleanedResult = resultString;
+      
+      try {
+        // Try to extract JSON if there's any text before or after
+        const jsonMatch = resultString.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          cleanedResult = jsonMatch[0];
+        }
+      } catch (matchError) {
+        console.error('Error matching JSON pattern:', matchError);
+        // Continue with the original string if matching fails
+      }
+      
+      // Parse the JSON string result
+      let parsedResult;
+      try {
+        parsedResult = JSON.parse(cleanedResult);
+        console.log('Parsed chain result:', parsedResult);
+      } catch (parseError) {
+        console.error('Error parsing chain result:', parseError);
+        throw new Error('Failed to parse JSON result');
+      }
+
+      // Return a consistent structure
+      return {
+        content: readmeResult.content,
+        summary: parsedResult.summary || "",
+        coolFacts: parsedResult.coolFacts || [],
+        mainTechnologies: parsedResult.mainTechnologies || [],
+        targetAudience: parsedResult.targetAudience || "",
+        setupComplexity: parsedResult.setupComplexity || "Moderate"
+      }
+    } catch (error) {
+      console.error('Error in repository analysis:', error);
+      
+      // Return fallback analysis for any error
       return {
         content: readmeResult.content,
         summary: "This repository contains code and documentation. Unable to provide detailed analysis.",
@@ -114,16 +140,6 @@ export const githubService = {
         targetAudience: "Developers",
         setupComplexity: "Moderate"
       }
-    }
-
-    // Return a consistent structure
-    return {
-      content: readmeResult.content,
-      summary: parsedResult.summary || "",
-      coolFacts: parsedResult.coolFacts || [],
-      mainTechnologies: parsedResult.mainTechnologies || [],
-      targetAudience: parsedResult.targetAudience || "",
-      setupComplexity: parsedResult.setupComplexity || "Moderate"
     }
   }
 } 
