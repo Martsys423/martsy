@@ -80,14 +80,27 @@ export const githubService = {
       )
     }
 
+    // Log README content length and preview
+    const readmeContent = readmeResult.content;
+    console.log(`README content length: ${readmeContent.length}`);
+    console.log(`README preview: ${readmeContent.substring(0, 200)}...`);
+    
+    // Check if README is too short
+    if (readmeContent.length < 100) {
+      console.warn("README content is very short, may not provide enough information for analysis");
+    }
+
     try {
       // Analyze repository
       const chain = createAnalysisChain()
+      console.log("Invoking analysis chain...");
+      
       const resultString = await chain.invoke({
-        readme: readmeResult.content
+        readme: readmeContent
       })
 
-      console.log('Raw chain result:', resultString);
+      console.log('Raw chain result length:', resultString.length);
+      console.log('Raw chain result preview:', resultString.substring(0, 200));
       
       // Ensure resultString is actually a string
       if (typeof resultString !== 'string') {

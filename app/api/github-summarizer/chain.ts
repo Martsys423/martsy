@@ -1,13 +1,24 @@
 import { ChatOpenAI } from "@langchain/openai";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { StringOutputParser } from "@langchain/core/output_parsers";
-import { z } from "zod";
 
 export function createAnalysisChain() {
+  // Check if OpenAI API key is set
+  if (!process.env.OPENAI_API_KEY) {
+    console.error("OPENAI_API_KEY is not set in environment variables");
+  } else {
+    console.log("OPENAI_API_KEY is set (length:", process.env.OPENAI_API_KEY.length, ")");
+  }
+
+  // Try to use GPT-3.5-turbo as a fallback if GPT-4o is not available
   const model = new ChatOpenAI({
-    modelName: "gpt-4o",
-    temperature: 0.2
+    modelName: "gpt-3.5-turbo",
+    temperature: 0.2,
+    maxTokens: 2000,
+    verbose: true
   });
+
+  console.log("Creating analysis chain with model:", model.modelName);
 
   const prompt = PromptTemplate.fromTemplate(`
     You are an expert GitHub repository analyzer. Your task is to analyze the README of a repository and extract key information.
