@@ -74,6 +74,40 @@ export default function PlaygroundPage() {
     setResponse('API call successful!')
   }
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    console.log('Validating API key:', apiKey)
+
+    try {
+      const response = await fetch('/api/validate-key', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ apiKey }),
+      })
+
+      const data = await response.json()
+      console.log('API Response:', { 
+        status: response.status, 
+        data 
+      })
+
+      if (response.ok && data.success) { // Changed from data.valid to data.success to match our API
+        toast.success('Valid API Key')
+        router.push(`/protected?apiKey=${encodeURIComponent(apiKey)}`)
+      } else {
+        toast.error(data.message || 'Invalid API Key')
+      }
+    } catch (error) {
+      console.error('Error in handleSubmit:', error)
+      toast.error('Error validating API key')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
     <DashboardLayout
       sidebar={
@@ -135,7 +169,7 @@ export default function PlaygroundPage() {
                   <Input
                     type={showApiKey ? "text" : "password"}
                     value={apiKey}
-                    onChange={(e) => setApiKey(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setApiKey(e.target.value)}
                     placeholder="Enter your API key"
                   />
                   <Button
@@ -149,11 +183,11 @@ export default function PlaygroundPage() {
                   </Button>
                 </div>
                 <Button 
-                  onClick={verifyApiKey} 
+                  onClick={handleSubmit} 
                   disabled={isLoading}
                   className="bg-black text-white hover:bg-gray-800"
                 >
-                  {isLoading ? 'Verifying...' : 'Verify'}
+                  {isLoading ? 'Validating...' : 'Validate Key'}
                 </Button>
               </div>
             </div>
