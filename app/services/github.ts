@@ -39,80 +39,89 @@ export async function validateGitHubUrl(url: string) {
 }
 
 export async function getGitHubReadme(url: string) {
-  const urlValidation = validateGitHubUrl(url)
-  
-  if (!urlValidation.isValid) {
-    return { 
-      success: false, 
-      message: urlValidation.message 
-    }
-  }
-  
-  const { owner, repo } = urlValidation as { owner: string, repo: string }
-  
   try {
-    // Try to fetch the README content using the raw GitHub URL
-    const response = await fetch(
-      `https://raw.githubusercontent.com/${owner}/${repo}/main/README.md`
-    )
+    // Wait for the validation result since it's now a Promise
+    const urlValidation = await validateGitHubUrl(url)
     
-    if (response.ok) {
-      const content = await response.text()
-      console.log('README content fetched from main branch')
-      console.log('README content preview:', content.substring(0, 200) + '...')
-      
+    if (!urlValidation.isValid) {
       return { 
-        success: true, 
-        content,
-        owner,
-        repo
+        success: false, 
+        message: urlValidation.message 
       }
     }
     
-    // If main branch doesn't work, try master branch
-    const masterResponse = await fetch(
-      `https://raw.githubusercontent.com/${owner}/${repo}/master/README.md`
-    )
+    const { owner, repo } = urlValidation as { owner: string, repo: string }
     
-    if (masterResponse.ok) {
-      const content = await masterResponse.text()
-      console.log('README content fetched from master branch')
-      console.log('README content preview:', content.substring(0, 200) + '...')
+    try {
+      // Try to fetch the README content using the raw GitHub URL
+      const response = await fetch(
+        `https://raw.githubusercontent.com/${owner}/${repo}/main/README.md`
+      )
       
-      return { 
-        success: true, 
-        content,
-        owner,
-        repo
-      }
-    }
-    
-    // If neither main nor master branches work, try the GitHub API
-    const apiResponse = await fetch(
-      `https://api.github.com/repos/${owner}/${repo}/readme`,
-      {
-        headers: {
-          'Accept': 'application/vnd.github.v3.raw'
+      if (response.ok) {
+        const content = await response.text()
+        console.log('README content fetched from main branch')
+        console.log('README content preview:', content.substring(0, 200) + '...')
+        
+        return { 
+          success: true, 
+          content,
+          owner,
+          repo
         }
       }
-    )
-    
-    if (apiResponse.ok) {
-      const content = await apiResponse.text()
-      console.log('README content fetched from GitHub API')
-      console.log('README content preview:', content.substring(0, 200) + '...')
       
-      return { 
-        success: true, 
-        content,
-        owner,
-        repo
+      // If main branch doesn't work, try master branch
+      const masterResponse = await fetch(
+        `https://raw.githubusercontent.com/${owner}/${repo}/master/README.md`
+      )
+      
+      if (masterResponse.ok) {
+        const content = await masterResponse.text()
+        console.log('README content fetched from master branch')
+        console.log('README content preview:', content.substring(0, 200) + '...')
+        
+        return { 
+          success: true, 
+          content,
+          owner,
+          repo
+        }
       }
-    }
-    
-    return {
-      success: false,
-      message: 'Failed to fetch README from GitHub'
+      
+      // If neither main nor master branches work, try the GitHub API
+      const apiResponse = await fetch(
+        `https://api.github.com/repos/${owner}/${repo}/readme`,
+        {
+          headers: {
+            'Accept': 'application/vnd.github.v3.raw'
+          }
+        }
+      )
+      
+      if (apiResponse.ok) {
+        const content = await apiResponse.text()
+        console.log('README content fetched from GitHub API')
+        console.log('README content preview:', content.substring(0, 200) + '...')
+        
+        return { 
+          success: true, 
+          content,
+          owner,
+          repo
+        }
+      }
+      
+      return {
+        success: false,
+        message: 'Failed to fetch README from GitHub'
+      }
+    } catch (error) {
+      console.error('Error fetching GitHub README:', error)
+      return {
+        success: false,
+        message: 'Error fetching GitHub README'
+      }
     }
   } catch (error) {
     console.error('Error fetching GitHub README:', error)
