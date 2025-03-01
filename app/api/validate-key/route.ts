@@ -1,5 +1,7 @@
 import { createServerSupabase } from '@/lib/supabase/server'
 import { validateApiKey } from '@/app/api/github-summarizer/validation'
+import { NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
 
 export async function GET(req: Request) {
   try {
@@ -68,74 +70,67 @@ export async function GET(req: Request) {
 // Add a POST handler for API key validation
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const apiKey = body.apiKey;
+    const { apiKey } = await req.json()
     
-    console.log('Validating API key via POST:', apiKey);
-    
-    if (!apiKey) {
-      return new Response(JSON.stringify({
+    // Validate API key format
+    if (!apiKey || typeof apiKey !== 'string' || apiKey.trim() === '') {
+      return NextResponse.json({
         success: false,
-        message: "API key is required"
-      }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+        message: 'Invalid API key format'
+      }, { status: 400 })
     }
     
-    // Use direct database check like in the GitHub service
-    const supabase = createServerSupabase();
+    // Clean the API key
+    const cleanApiKey = apiKey.trim()
+    
+    console.log('Validating API key:', {
+      keyLength: cleanApiKey.length,
+      keyPrefix: cleanApiKey.substring(0, 7) // Show only prefix for security
+    })
+    
+    // Check API key in database
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    )
+    
     const { data, error } = await supabase
       .from('api_keys')
       .select('*')
-      .eq('key', apiKey)
-      .maybeSingle();
-    
-    console.log('API key validation result:', {
-      found: !!data,
-      error: error?.message || 'none'
-    });
+      .eq('key', cleanApiKey)
+      .maybeSingle()
     
     if (error) {
-      return new Response(JSON.stringify({
+      console.error('Database error:', error)
+      return NextResponse.json({
         success: false,
-        message: "Database error during validation"
-      }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      });
+        message: 'Error validating API key'
+      }, { status: 500 })
     }
     
     if (!data) {
-      return new Response(JSON.stringify({
+      return NextResponse.json({
         success: false,
-        message: "Invalid API key"
-      }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' }
-      });
+        message: 'Invalid API key'
+      }, { status: 401 })
     }
     
-    return new Response(JSON.stringify({
+    // API key is valid
+    return NextResponse.json({
       success: true,
-      message: "Valid API key",
-      user: {
-        name: data.name,
-        id: data.user_id
-      }
-    }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' }
-    });
+      message: 'API key is valid'
+    })
   } catch (error) {
-    console.error('API key validation error:', error);
-    return new Response(JSON.stringify({
+    console.error('Error in validate-key route:', error)
+    return NextResponse.json({
       success: false,
-      message: "Internal server error",
-      error: error instanceof Error ? error.message : String(error)
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+      message: 'Server error'
+    }, { status: 500 })
   }
 } 

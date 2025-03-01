@@ -26,6 +26,7 @@ export default function PlaygroundPage() {
   const [response, setResponse] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [showApiKey, setShowApiKey] = useState(false)
+  const [isValidated, setIsValidated] = useState(false)
 
   const verifyApiKey = async () => {
     if (!apiKey) {
@@ -77,6 +78,7 @@ export default function PlaygroundPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setIsValidated(false)
     console.log('Validating API key:', apiKey)
 
     try {
@@ -94,15 +96,22 @@ export default function PlaygroundPage() {
         data 
       })
 
-      if (response.ok && data.success) { // Changed from data.valid to data.success to match our API
+      if (response.ok && data.success) {
+        setIsValidated(true)
         toast.success('Valid API Key')
-        router.push(`/protected?apiKey=${encodeURIComponent(apiKey)}`)
+        
+        // Add a slight delay before redirecting to ensure the toast is seen
+        setTimeout(() => {
+          router.push(`/protected?apiKey=${encodeURIComponent(apiKey)}`)
+        }, 1000)
       } else {
         toast.error(data.message || 'Invalid API Key')
+        setIsValidated(false)
       }
     } catch (error) {
       console.error('Error in handleSubmit:', error)
       toast.error('Error validating API key')
+      setIsValidated(false)
     } finally {
       setIsLoading(false)
     }
@@ -184,7 +193,7 @@ export default function PlaygroundPage() {
                 </div>
                 <Button 
                   onClick={handleSubmit} 
-                  disabled={isLoading}
+                  disabled={isLoading || !apiKey}
                   className="bg-black text-white hover:bg-gray-800"
                 >
                   {isLoading ? 'Validating...' : 'Validate Key'}
@@ -217,6 +226,12 @@ export default function PlaygroundPage() {
                 <pre className="bg-gray-100 p-4 rounded-lg mt-1 overflow-auto">
                   {response}
                 </pre>
+              </div>
+            )}
+
+            {isValidated && (
+              <div className="mt-4 p-3 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-md">
+                API key is valid! Redirecting to protected page...
               </div>
             )}
           </CardContent>
