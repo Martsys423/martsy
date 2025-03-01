@@ -2,13 +2,13 @@ import { NextResponse } from 'next/server'
 
 export async function GET(req: Request) {
   try {
-    // Check if OpenAI API key is set
-    const apiKey = process.env.OPENAI_API_KEY;
+    // Check if OpenAI API key is set with either name
+    const apiKey = process.env.NEXT_OPENAI_API_KEY || process.env.OPENAI_API_KEY;
     
     if (!apiKey) {
       return NextResponse.json({
         success: false,
-        message: "OPENAI_API_KEY is not set in environment variables"
+        message: "Neither NEXT_OPENAI_API_KEY nor OPENAI_API_KEY is set in environment variables"
       }, { status: 500 });
     }
     

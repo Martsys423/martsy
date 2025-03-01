@@ -3,19 +3,21 @@ import { PromptTemplate } from "@langchain/core/prompts";
 import { StringOutputParser } from "@langchain/core/output_parsers";
 
 export function createAnalysisChain() {
-  // Check if OpenAI API key is set
-  if (!process.env.OPENAI_API_KEY) {
-    console.error("OPENAI_API_KEY is not set in environment variables");
+  // Check if OpenAI API key is set with the correct variable name
+  const apiKey = process.env.NEXT_OPENAI_API_KEY || process.env.OPENAI_API_KEY;
+  
+  if (!apiKey) {
+    console.error("Neither NEXT_OPENAI_API_KEY nor OPENAI_API_KEY is set in environment variables");
   } else {
-    console.log("OPENAI_API_KEY is set (length:", process.env.OPENAI_API_KEY.length, ")");
+    console.log("OpenAI API key is set (length:", apiKey.length, ")");
   }
 
-  // Try to use GPT-3.5-turbo as a fallback if GPT-4o is not available
+  // Use the correct API key
   const model = new ChatOpenAI({
     modelName: "gpt-3.5-turbo",
     temperature: 0.2,
     maxTokens: 2000,
-    verbose: true
+    apiKey: apiKey
   });
 
   console.log("Creating analysis chain with model:", model.modelName);
