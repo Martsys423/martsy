@@ -51,85 +51,76 @@ export async function getGitHubReadme(url) {
   console.log(`Fetching README for ${owner}/${repo}`)
 
   try {
-    // Try to fetch the README content
-    const response = await octokit.repos.getReadme({
-      owner,
-      repo,
-      mediaType: {
-        format: 'raw'
-      }
-    })
+    // Try to fetch the README content using the raw GitHub URL
+    const response = await fetch(
+      `https://raw.githubusercontent.com/${owner}/${repo}/main/README.md`
+    )
 
-    // Check if we got a successful response
-    if (response.status !== 200) {
-      console.error(`GitHub API error: ${response.status}`)
+    if (response.ok) {
+      const content = await response.text()
+      console.log('README content fetched from main branch')
+      console.log('README content preview:', content.substring(0, 200) + '...')
+      
       return { 
-        success: false, 
-        message: `Failed to fetch README (Status: ${response.status})` 
+        success: true, 
+        content,
+        owner,
+        repo
       }
     }
-
-    // Get the content
-    const content = response.data
     
-    // Log a preview of the content
-    console.log('README content preview:', content.substring(0, 200) + '...')
-    console.log('README content length:', content.length)
+    // If main branch doesn't work, try master branch
+    const masterResponse = await fetch(
+      `https://raw.githubusercontent.com/${owner}/${repo}/master/README.md`
+    )
     
+    if (masterResponse.ok) {
+      const content = await masterResponse.text()
+      console.log('README content fetched from master branch')
+      console.log('README content preview:', content.substring(0, 200) + '...')
+      
+      return { 
+        success: true, 
+        content,
+        owner,
+        repo
+      }
+    }
+    
+    // Try GitHub API as a last resort
+    const apiResponse = await fetch(
+      `https://api.github.com/repos/${owner}/${repo}/readme`,
+      {
+        headers: {
+          'Accept': 'application/vnd.github.v3.raw',
+          'User-Agent': 'GitHub-Readme-Fetcher'
+        }
+      }
+    )
+    
+    if (apiResponse.ok) {
+      const content = await apiResponse.text()
+      console.log('README content fetched from GitHub API')
+      console.log('README content preview:', content.substring(0, 200) + '...')
+      
+      return { 
+        success: true, 
+        content,
+        owner,
+        repo
+      }
+    }
+    
+    console.error('Failed to fetch README from all sources')
     return { 
-      success: true, 
-      content,
-      owner,
-      repo
+      success: false, 
+      message: 'Failed to fetch README' 
     }
   } catch (error) {
     console.error('Error fetching GitHub README:', error)
-    
-    // Try alternative approach - fetch default branch first
-    try {
-      console.log('Trying alternative approach to fetch README...')
-      
-      // Get repository info to determine default branch
-      const repoInfo = await octokit.repos.get({
-        owner,
-        repo
-      })
-      
-      const defaultBranch = repoInfo.data.default_branch
-      console.log(`Default branch for ${owner}/${repo}: ${defaultBranch}`)
-      
-      // Try to fetch README.md directly from the default branch
-      const contentResponse = await octokit.repos.getContent({
-        owner,
-        repo,
-        path: 'README.md',
-        ref: defaultBranch
-      })
-      
-      if (contentResponse.data && contentResponse.data.content) {
-        // Content is base64 encoded
-        const content = Buffer.from(contentResponse.data.content, 'base64').toString()
-        console.log('README content fetched via alternative method')
-        console.log('README content preview:', content.substring(0, 200) + '...')
-        
-        return {
-          success: true,
-          content,
-          owner,
-          repo
-        }
-      }
-      
-      return { 
-        success: false, 
-        message: 'Failed to fetch README content' 
-      }
-    } catch (altError) {
-      console.error('Alternative method also failed:', altError)
-      return { 
-        success: false, 
-        message: 'Failed to fetch README' 
-      }
+    return { 
+      success: false, 
+      message: 'Failed to fetch README' 
     }
   }
 } 
