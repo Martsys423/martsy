@@ -84,6 +84,11 @@
 - Enhanced playground UI with modern components
 - Improved API key visibility controls
 
+## Updates
+- Added "Coming Soon" badges to Pro and Enterprise pricing tiers using shadcn/ui Badge component
+- Positioned badges in top-right corner of pricing cards
+- Added comingSoon property to pricing data structure
+
 <Button 
   variant="ghost" 
   className="w-full justify-start gap-2 text-sm"

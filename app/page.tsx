@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Check } from "lucide-react"
 import { useSession, signOut } from "next-auth/react"
 import { GRADIENTS } from "@/lib/constants"
+import { Badge } from "@/components/ui/badge"
 
 export default function Home() {
   const { data: session, status } = useSession()
@@ -109,15 +110,25 @@ export default function Home() {
                   price: "$9.99",
                   features: ["50 repo analyses per month", "Advanced insights", "Hourly updates", "API access"],
                   cta: "Upgrade to Pro",
+                  comingSoon: true,
                 },
                 {
                   title: "Enterprise",
                   price: "Custom",
                   features: ["Unlimited analyses", "Custom integrations", "Dedicated support", "On-premise option"],
                   cta: "Contact Sales",
+                  comingSoon: true,
                 },
               ].map((plan, index) => (
-                <Card key={index} className={index === 1 ? "border-purple-500 border-2" : ""}>
+                <Card key={index} className={`${index === 1 ? "border-purple-500 border-2" : ""} relative`}>
+                  {plan.comingSoon && (
+                    <Badge 
+                      className="absolute top-4 right-4" 
+                      variant="secondary"
+                    >
+                      Coming Soon
+                    </Badge>
+                  )}
                   <CardHeader>
                     <CardTitle>{plan.title}</CardTitle>
                     <CardDescription className="text-2xl font-bold">{plan.price}</CardDescription>

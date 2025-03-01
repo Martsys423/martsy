@@ -7,16 +7,25 @@ import toast from 'react-hot-toast'
 export function useApiKeys() {
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   const fetchKeys = async () => {
     try {
+      setLoading(true)
+      setError(null)
       const response = await fetch('/api/keys')
-      if (!response.ok) throw new Error('Failed to fetch API keys')
+      
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Failed to fetch API keys')
+      }
+      
       const data = await response.json()
       setApiKeys(data)
     } catch (error) {
-      console.error('Error fetching API keys:', error)
-      toast.error('Failed to load API keys')
+      const message = error instanceof Error ? error.message : 'Failed to load API keys'
+      setError(message)
+      toast.error(message)
     } finally {
       setLoading(false)
     }
@@ -39,14 +48,17 @@ export function useApiKeys() {
         }),
       })
 
-      if (!response.ok) throw new Error('Failed to create API key')
-      
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Failed to create API key')
+      }
+
       await fetchKeys()
       toast.success('API key created successfully')
       return true
     } catch (error) {
-      console.error('Error creating API key:', error)
-      toast.error('Failed to create API key')
+      const message = error instanceof Error ? error.message : 'Failed to create API key'
+      toast.error(message)
       return false
     }
   }
@@ -90,6 +102,7 @@ export function useApiKeys() {
   return {
     apiKeys,
     loading,
+    error,
     createKey,
     deleteKey,
     updateKeyName,
