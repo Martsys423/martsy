@@ -1,11 +1,5 @@
-import { Octokit } from '@octokit/rest'
 import { APIError } from '@/app/utils/error-handler'
 import { HTTP_STATUS } from '@/app/constants'
-
-// Create Octokit instance with GitHub token if available
-const octokit = new Octokit({
-  auth: process.env.GITHUB_TOKEN || undefined
-})
 
 export function validateGitHubUrl(url) {
   if (!url) {
