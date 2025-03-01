@@ -17,7 +17,7 @@ export function createAnalysisChain() {
     modelName: "gpt-3.5-turbo",
     temperature: 0.2,
     maxTokens: 2000,
-    apiKey: apiKey
+    openAIApiKey: apiKey
   });
 
   console.log("Creating analysis chain with model:", model.modelName);
