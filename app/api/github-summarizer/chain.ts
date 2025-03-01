@@ -1,7 +1,6 @@
 import { ChatOpenAI } from "@langchain/openai";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { StringOutputParser } from "@langchain/core/output_parsers";
-import { RunnableSequence } from "@langchain/core/runnables";
 
 export function createAnalysisChain() {
   // Check if OpenAI API key is set with the correct variable name
@@ -52,10 +51,25 @@ export function createAnalysisChain() {
 
   // Create a simpler chain using the invoke method directly
   return async (readme: string) => {
-    const prompt = PromptTemplate.fromTemplate(promptTemplate);
-    const formattedPrompt = await prompt.format({ readme });
-    const result = await model.invoke(formattedPrompt);
-    const parser = new StringOutputParser();
-    return parser.invoke(result);
+    try {
+      const prompt = PromptTemplate.fromTemplate(promptTemplate);
+      const formattedPrompt = await prompt.format({ readme });
+      const result = await model.invoke(formattedPrompt);
+      
+      // Extract the content from the message
+      const content = result.content.toString();
+      
+      // Return the content directly without using StringOutputParser
+      return content;
+    } catch (error) {
+      console.error("Error in analysis chain:", error);
+      return JSON.stringify({
+        summary: "Error analyzing repository",
+        coolFacts: ["Error occurred during analysis"],
+        mainTechnologies: ["Unknown"],
+        targetAudience: "Unknown",
+        setupComplexity: "Unknown"
+      });
+    }
   };
 } 
