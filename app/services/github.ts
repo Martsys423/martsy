@@ -191,7 +191,7 @@ export const githubService = {
     
     if (!urlValidation.isValid) {
       throw new APIError(
-        urlValidation.message,
+        urlValidation.message || 'Invalid GitHub URL',
         HTTP_STATUS.BAD_REQUEST
       )
     }
