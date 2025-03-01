@@ -10,6 +10,8 @@ export function createAnalysisChain() {
   });
 
   const prompt = PromptTemplate.fromTemplate(`
+    You are a GitHub repository analyzer. Your task is to analyze the README of a repository and extract key information.
+    
     Analyze the following GitHub repository README and provide:
     1. A concise summary (max 200 words)
     2. 3 cool/interesting facts about the project
@@ -20,16 +22,18 @@ export function createAnalysisChain() {
     README:
     {readme}
 
-    Respond in JSON format with the following structure:
+    IMPORTANT: You must respond with ONLY a valid JSON object in the following format, with no additional text, markdown, or explanations:
+    
     {
-      "summary": "...",
+      "summary": "A concise description of the project",
       "coolFacts": ["fact1", "fact2", "fact3"],
       "mainTechnologies": ["tech1", "tech2", "tech3"],
-      "targetAudience": "...",
-      "setupComplexity": "Simple|Moderate|Complex"
+      "targetAudience": "Description of who would use this",
+      "setupComplexity": "Simple"
     }
-
-    Make sure to return valid JSON that can be parsed.
+    
+    Ensure your response is properly formatted JSON with no trailing commas, and all strings are properly quoted.
+    Do not include any text outside the JSON object.
   `);
 
   // Use a simpler output parser to avoid the complex type issues

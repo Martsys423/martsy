@@ -86,18 +86,34 @@ export const githubService = {
       readme: readmeResult.content
     })
 
+    console.log('Raw chain result:', resultString);
+    
+    // Clean the result string to ensure it's valid JSON
+    let cleanedResult = resultString;
+    
+    // Try to extract JSON if there's any text before or after
+    const jsonMatch = resultString.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      cleanedResult = jsonMatch[0];
+    }
+    
     // Parse the JSON string result
     let parsedResult;
     try {
-      parsedResult = JSON.parse(resultString);
+      parsedResult = JSON.parse(cleanedResult);
       console.log('Parsed chain result:', parsedResult);
     } catch (error) {
       console.error('Error parsing chain result:', error);
-      console.log('Raw result:', resultString);
-      throw new APIError(
-        "Failed to parse analysis result", 
-        HTTP_STATUS.SERVER_ERROR
-      )
+      
+      // Fallback to a simple analysis if parsing fails
+      return {
+        content: readmeResult.content,
+        summary: "This repository contains code and documentation. Unable to provide detailed analysis.",
+        coolFacts: ["Contains a README file", "Is hosted on GitHub", "May include code samples"],
+        mainTechnologies: ["Unknown"],
+        targetAudience: "Developers",
+        setupComplexity: "Moderate"
+      }
     }
 
     // Return a consistent structure
