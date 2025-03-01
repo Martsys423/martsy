@@ -85,50 +85,85 @@ export const githubService = {
     console.log(`README content length: ${readmeContent.length}`);
     console.log(`README preview: ${readmeContent.substring(0, 200)}...`);
     
-    // Check if README is too short
-    if (readmeContent.length < 100) {
-      console.warn("README content is very short, may not provide enough information for analysis");
-    }
-
     try {
-      // Analyze repository
-      const chain = createAnalysisChain()
-      console.log("Invoking analysis chain...");
+      // Try direct OpenAI API call instead of using LangChain
+      console.log("Making direct OpenAI API call...");
       
-      const resultString = await chain.invoke({
-        readme: readmeContent
-      })
-
-      console.log('Raw chain result length:', resultString.length);
-      console.log('Raw chain result preview:', resultString.substring(0, 200));
-      
-      // Ensure resultString is actually a string
-      if (typeof resultString !== 'string') {
-        console.error('Chain result is not a string:', resultString);
-        throw new Error('Chain result is not a string');
+      // Check if OpenAI API key is set
+      if (!process.env.OPENAI_API_KEY) {
+        console.error("OPENAI_API_KEY is not set in environment variables");
+        throw new Error("OpenAI API key is not configured");
       }
       
-      // Clean the result string to ensure it's valid JSON
-      let cleanedResult = resultString;
+      // Make direct API call to OpenAI
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: "gpt-3.5-turbo",
+          messages: [
+            {
+              role: "system",
+              content: "You are an expert GitHub repository analyzer. Analyze the README and provide information in JSON format."
+            },
+            {
+              role: "user",
+              content: `Analyze this GitHub repository README and provide: 
+                1. A concise summary (max 150 words)
+                2. 3 specific and interesting facts about the project
+                3. Main technologies used
+                4. Target audience
+                5. Setup complexity (Simple, Moderate, or Complex)
+                
+                Respond ONLY with valid JSON in this format:
+                {
+                  "summary": "description",
+                  "coolFacts": ["fact1", "fact2", "fact3"],
+                  "mainTechnologies": ["tech1", "tech2", "tech3"],
+                  "targetAudience": "description",
+                  "setupComplexity": "Simple|Moderate|Complex"
+                }
+                
+                README:
+                ${readmeContent.substring(0, 4000)}`
+            }
+          ],
+          temperature: 0.2,
+          max_tokens: 1000
+        })
+      });
       
-      try {
-        // Try to extract JSON if there's any text before or after
-        const jsonMatch = resultString.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          cleanedResult = jsonMatch[0];
-        }
-      } catch (matchError) {
-        console.error('Error matching JSON pattern:', matchError);
-        // Continue with the original string if matching fails
+      const result = await response.json();
+      console.log("OpenAI API response status:", response.status);
+      console.log("OpenAI API response headers:", Object.fromEntries(response.headers.entries()));
+      
+      if (!response.ok) {
+        console.error("OpenAI API error:", result);
+        throw new Error(`OpenAI API error: ${result.error?.message || 'Unknown error'}`);
       }
       
-      // Parse the JSON string result
+      // Extract content from OpenAI response
+      const content = result.choices[0]?.message?.content;
+      console.log("OpenAI response content:", content);
+      
+      if (!content) {
+        throw new Error("Empty response from OpenAI");
+      }
+      
+      // Parse JSON from response
       let parsedResult;
       try {
-        parsedResult = JSON.parse(cleanedResult);
-        console.log('Parsed chain result:', parsedResult);
+        // Try to extract JSON if there's any text before or after
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        const jsonString = jsonMatch ? jsonMatch[0] : content;
+        
+        parsedResult = JSON.parse(jsonString);
+        console.log('Parsed result:', parsedResult);
       } catch (parseError) {
-        console.error('Error parsing chain result:', parseError);
+        console.error('Error parsing result:', parseError);
         throw new Error('Failed to parse JSON result');
       }
 
