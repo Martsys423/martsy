@@ -1,5 +1,5 @@
 import { GRADIENTS } from "@/lib/constants"
-import { Button } from "@/components/ui/Button"
+import { Button } from "@/components/ui/button"
 
 export function PlanCard() {
   return (
