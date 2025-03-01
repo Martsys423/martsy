@@ -34,7 +34,8 @@ export async function validateGitHubUrl(url: string) {
   return { 
     isValid: true, 
     owner: parts[0], 
-    repo: parts[1] 
+    repo: parts[1],
+    message: 'Valid GitHub URL'
   }
 }
 
@@ -235,7 +236,7 @@ export const githubService = {
       });
       
       // Create a parser based on the schema
-      const parser = StructuredOutputParser.fromZodSchema(outputSchema);
+      const parser = StructuredOutputParser.fromZodSchema(outputSchema as any);
       
       // Create the OpenAI chat model
       const model = new ChatOpenAI({
@@ -261,14 +262,15 @@ export const githubService = {
       
       // Format the prompt with the README content
       const prompt = await promptTemplate.format({
-        readme_content: readmeContent.substring(0, 4000)
+        readme_content: readmeContent?.substring(0, 4000) || "No README content available"
       });
       
       // Call the model
       const response = await model.invoke(prompt);
       
       // Parse the structured output
-      const parsedOutput = await parser.parse(response);
+      const responseText = response.content.toString();
+      const parsedOutput = await parser.parse(responseText);
       
       // Return only the parsed output without the README content
       return parsedOutput;

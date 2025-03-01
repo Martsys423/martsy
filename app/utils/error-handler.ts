@@ -6,12 +6,12 @@ export class APIError extends Error {
   details?: any;
 
   constructor(
-    message: string, 
+    message: string | undefined, 
     statusCode = HTTP_STATUS.SERVER_ERROR, 
     code?: string, 
     details?: any
   ) {
-    super(message);
+    super(message || 'An error occurred');
     this.name = 'APIError';
     this.statusCode = statusCode;
     this.code = code;
