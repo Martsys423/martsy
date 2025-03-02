@@ -2,6 +2,14 @@ import { createClient } from '@supabase/supabase-js'
 import { APIError } from '@/app/utils/error-handler'
 import { HTTP_STATUS, ERROR_MESSAGES } from '@/app/constants'
 
+// Define interface for API key
+interface ApiKey {
+  id: string;
+  name: string;
+  created_at: string;
+  last_used?: string;
+}
+
 export const apiKeyService = {
   async validateApiKey(apiKey: string) {
     if (!apiKey) {
@@ -69,7 +77,7 @@ export const apiKeyService = {
     // This is a placeholder - implement as needed
     return {
       success: true,
-      keys: []
+      keys: [] as ApiKey[]  // Add explicit type annotation
     }
   },
   
