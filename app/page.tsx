@@ -7,9 +7,17 @@ import { Check } from "lucide-react"
 import { useSession, signOut } from "next-auth/react"
 import { GRADIENTS } from "@/lib/constants"
 import { Badge } from "@/components/ui/badge"
+import { GitHubApiDemo } from "@/components/github-api-demo"
 
 export default function Home() {
   const { data: session, status } = useSession()
+
+  // Gradient title component for consistent styling
+  const GradientTitle = ({ children }: { children: React.ReactNode }) => (
+    <h2 className="text-3xl font-bold text-center mb-12 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600">
+      {children}
+    </h2>
+  );
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -70,7 +78,7 @@ export default function Home() {
         {/* Features Section */}
         <section className="py-20">
           <div className="container mx-auto px-4">
-            <h2 className="text-3xl font-bold text-center mb-12">Key Features</h2>
+            <GradientTitle>Key Features</GradientTitle>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-4">
               {[
                 { title: "Repository Summaries", description: "Get concise overviews of any GitHub repo" },
@@ -93,16 +101,32 @@ export default function Home() {
           </div>
         </section>
 
+        {/* API Demo Section - Now positioned after Features */}
+        <section className="py-20 bg-gray-50">
+          <div className="container mx-auto px-4">
+            <GradientTitle>Try It Yourself</GradientTitle>
+            <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
+              Test our GitHub Analyzer API directly in your browser. Enter a repository URL and see what insights you can discover.
+            </p>
+            <GitHubApiDemo />
+          </div>
+        </section>
+
         {/* Pricing Section */}
         <section className="bg-gray-100 py-20">
           <div className="container mx-auto px-4">
-            <h2 className="text-3xl font-bold text-center mb-12">Simple Pricing</h2>
+            <GradientTitle>Simple Pricing</GradientTitle>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 px-4">
               {[
                 {
                   title: "Free",
                   price: "$0",
-                  features: ["5 repo analyses per month", "Basic insights", "Daily updates"],
+                  features: [
+                    "5 repo analyses per month", 
+                    "Basic insights", 
+                    "Daily updates",
+                    "Community support"
+                  ],
                   cta: "Get Started",
                 },
                 {
@@ -145,11 +169,7 @@ export default function Home() {
                   </CardContent>
                   <CardFooter>
                     <Button 
-                      className={`w-full transition-all duration-200 shadow-md hover:shadow-xl ${
-                        index === 1 
-                          ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700' 
-                          : 'bg-gradient-to-r from-gray-700 to-gray-900 hover:from-gray-800 hover:to-black'
-                      }`}
+                      className="w-full transition-all duration-200 shadow-md hover:shadow-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
                     >
                       {plan.cta}
                     </Button>
